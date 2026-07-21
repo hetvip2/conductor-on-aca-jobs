@@ -47,7 +47,7 @@ azd auth login
 azd up
 ```
 
-Live Azure provisioning was not run while authoring this repository.
+Live validation in `westus2` completed native Conductor single and five-way fan-out workflows and matched six successful ACA executions.
 
 ## Existing Conductor Integration
 
@@ -88,7 +88,7 @@ python -m build
 az bicep build --file infra/main.bicep
 ```
 
-CI needs no Azure credentials. Before publication, run the real local-server success, fan-out, terminal-failure, and timeout paths; dependency and license audit; dedicated secret scan over tree/history; clean-clone walkthrough; approved live Azure validation; and mandated independent reviews.
+CI needs no Azure credentials. Real local-server tests, live Azure validation, dependency and license audit, dedicated tree/history secret scanning, clean-clone validation, and independent review are complete. Repeated provisioning and cleanup were also verified. Status: **LIVE VALIDATED**.
 
 ## Troubleshooting And Cleanup
 
