@@ -1,0 +1,52 @@
+{
+  "name": "aca_five_way_fanout",
+  "description": "Start five ACA Job executions in parallel and join their terminal results",
+  "version": 1,
+  "schemaVersion": 2,
+  "restartable": true,
+  "inputParameters": ["correlation_id"],
+  "tasks": [
+    {
+      "name": "fork",
+      "taskReferenceName": "fork",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          { "name": "aca_start", "taskReferenceName": "start_0", "type": "SIMPLE", "inputParameters": { "correlation_id": "${workflow.input.correlation_id}-0" } },
+          { "name": "aca_wait", "taskReferenceName": "wait_0", "type": "SIMPLE", "inputParameters": { "execution_name": "${start_0.output.execution_name}", "correlation_id": "${start_0.output.correlation_id}" } }
+        ],
+        [
+          { "name": "aca_start", "taskReferenceName": "start_1", "type": "SIMPLE", "inputParameters": { "correlation_id": "${workflow.input.correlation_id}-1" } },
+          { "name": "aca_wait", "taskReferenceName": "wait_1", "type": "SIMPLE", "inputParameters": { "execution_name": "${start_1.output.execution_name}", "correlation_id": "${start_1.output.correlation_id}" } }
+        ],
+        [
+          { "name": "aca_start", "taskReferenceName": "start_2", "type": "SIMPLE", "inputParameters": { "correlation_id": "${workflow.input.correlation_id}-2" } },
+          { "name": "aca_wait", "taskReferenceName": "wait_2", "type": "SIMPLE", "inputParameters": { "execution_name": "${start_2.output.execution_name}", "correlation_id": "${start_2.output.correlation_id}" } }
+        ],
+        [
+          { "name": "aca_start", "taskReferenceName": "start_3", "type": "SIMPLE", "inputParameters": { "correlation_id": "${workflow.input.correlation_id}-3" } },
+          { "name": "aca_wait", "taskReferenceName": "wait_3", "type": "SIMPLE", "inputParameters": { "execution_name": "${start_3.output.execution_name}", "correlation_id": "${start_3.output.correlation_id}" } }
+        ],
+        [
+          { "name": "aca_start", "taskReferenceName": "start_4", "type": "SIMPLE", "inputParameters": { "correlation_id": "${workflow.input.correlation_id}-4" } },
+          { "name": "aca_wait", "taskReferenceName": "wait_4", "type": "SIMPLE", "inputParameters": { "execution_name": "${start_4.output.execution_name}", "correlation_id": "${start_4.output.correlation_id}" } }
+        ]
+      ]
+    },
+    {
+      "name": "join",
+      "taskReferenceName": "join",
+      "type": "JOIN",
+      "joinOn": ["wait_0", "wait_1", "wait_2", "wait_3", "wait_4"]
+    }
+  ],
+  "outputParameters": {
+    "shard_0": "${wait_0.output}",
+    "shard_1": "${wait_1.output}",
+    "shard_2": "${wait_2.output}",
+    "shard_3": "${wait_3.output}",
+    "shard_4": "${wait_4.output}"
+  },
+  "timeoutPolicy": "TIME_OUT_WF",
+  "timeoutSeconds": 2100
+}

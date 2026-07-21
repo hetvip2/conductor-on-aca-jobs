@@ -1,0 +1,33 @@
+{
+  "name": "aca_single",
+  "description": "Start and durably poll one Azure Container Apps Job execution",
+  "version": 1,
+  "schemaVersion": 2,
+  "restartable": true,
+  "inputParameters": ["correlation_id", "args"],
+  "tasks": [
+    {
+      "name": "aca_start",
+      "taskReferenceName": "start",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "correlation_id": "${workflow.input.correlation_id}",
+        "args": "${workflow.input.args}"
+      }
+    },
+    {
+      "name": "aca_wait",
+      "taskReferenceName": "wait",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "execution_name": "${start.output.execution_name}",
+        "correlation_id": "${start.output.correlation_id}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "execution": "${wait.output}"
+  },
+  "timeoutPolicy": "TIME_OUT_WF",
+  "timeoutSeconds": 2100
+}

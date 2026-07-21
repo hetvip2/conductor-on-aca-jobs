@@ -1,0 +1,7 @@
+name: conductor-on-aca-jobs
+metadata:
+  template: conductor-on-aca-jobs@0.1.0
+hooks:
+  preprovision:
+    posix: { shell: sh, run: ./infra/scripts/defaults.sh, interactive: false }
+    windows: { shell: pwsh, run: ./infra/scripts/defaults.ps1, interactive: false }
