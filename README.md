@@ -55,6 +55,20 @@ Install the package in a worker environment, set `CONDUCTOR_SERVER_URL`, `AZURE_
 
 The start worker returns a stable ACA execution name. Conductor persists it before scheduling `aca_wait`. Each wait callback receives that same name and returns `TaskInProgress`, releasing the worker between polls. Worker restart and task retry therefore resume one execution rather than starting another. The five-way workflow uses a native `FORK_JOIN` and `JOIN`; terminal branch failure prevents workflow success and downstream completion.
 
+## Production Concurrency
+
+`scripts/generate_fanout.py` emits native Conductor `FORK_JOIN`/`JOIN` definitions for `1` through `50` shards. With no arguments it reproduces the registered `aca_five_way_fanout` definition. Generate and register a separate 25-shard definition with:
+
+```powershell
+python scripts/generate_fanout.py --shards 25 --output workflows/fanout-25.json
+$definition = Get-Content workflows/fanout-25.json -Raw | ConvertFrom-Json
+Invoke-RestMethod -Method Put -Uri "$env:CONDUCTOR_SERVER_URL/metadata/workflow" -ContentType "application/json" -Body (ConvertTo-Json -InputObject @($definition) -Depth 100)
+```
+
+Start it as workflow name `aca_25_way_fanout`, version `1`, with `correlation_id` in the workflow input. Capture the workflow ID, workflow status, fork branch count, join status, per-shard task status, ACA execution names/statuses, and each correlation ID (`<correlation_id>-<shard>`) as evidence. Set worker concurrency and callback intervals from observed behavior in your environment.
+
+Only the five-way fan-out has live proof in this repository. The generated 25-shard definition is covered by offline tests; 25- and 50-shard runs have not been measured, and no throughput, quota, or completion-time result is claimed for them.
+
 ## Real Local Runtime
 
 Start maintained Conductor OSS locally using its current CLI or container image, then run the smoke script:

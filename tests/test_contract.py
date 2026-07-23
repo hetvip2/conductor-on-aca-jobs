@@ -11,6 +11,7 @@ from conductor.client.automator.utils import convert_from_dict_or_list
 
 from conductor_aca_jobs.client import AcaJobsClient, AcaJobsError, JobRef, Response
 from conductor_aca_jobs.workers import aca_start, aca_wait, build_client
+from scripts.generate_fanout import build_fanout
 
 
 ROOT = Path(__file__).parents[1]
@@ -72,6 +73,22 @@ def test_workflows_preserve_identity_and_have_five_branches() -> None:
     branches = fanout["tasks"][0]["forkTasks"]
     assert len(branches) == 5
     assert fanout["tasks"][1]["joinOn"] == [f"wait_{index}" for index in range(5)]
+
+
+def test_generated_fanout_defaults_to_five_and_supports_twenty_five() -> None:
+    default = build_fanout()
+    configured = build_fanout(25)
+
+    assert default == json.loads((ROOT / "workflows" / "fanout.json").read_text())
+    assert len(configured["tasks"][0]["forkTasks"]) == 25
+    assert configured["tasks"][1]["joinOn"] == [f"wait_{index}" for index in range(25)]
+    assert configured["outputParameters"]["shard_24"] == "${wait_24.output}"
+
+
+@pytest.mark.parametrize("shard_count", [0, 51])
+def test_generated_fanout_rejects_unsupported_width(shard_count: int) -> None:
+    with pytest.raises(ValueError, match="between 1 and 50"):
+        build_fanout(shard_count)
 
 
 def test_worker_annotations_are_supported_by_conductor_converter() -> None:
